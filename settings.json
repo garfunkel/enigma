@@ -1,0 +1,28 @@
+{
+	"model": "M3",
+	"reflector": "B",
+	"wheels": [
+		{
+			"number": "II",
+			"ring setting": "J",
+			"ground setting": "Q"
+		},
+		{
+			"number": "IV",
+			"ring setting": "B",
+			"ground setting": "D"
+		},
+		{
+			"number": "VII",
+			"ring setting": "L",
+			"ground setting": "R"
+		}
+	],
+	"plugboard": {
+		"A": "J",
+		"K": "Z",
+		"Y": "D",
+		"O": "R",
+		"T": "Q"
+	}
+}
