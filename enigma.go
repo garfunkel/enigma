@@ -5,133 +5,168 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"strings"
 )
 
-var WheelWiring = map[string]map[string]map[string]string{
+type Key struct {
+	rune
+}
+
+var WheelWiring = map[string]map[string]map[Key]Key{
 	"M3": {
 		"I": {
-			"A": "E", "B": "K", "C": "M", "D": "F", "E": "L", "F": "G",
-			"G": "D", "H": "Q", "I": "V", "J": "Z", "K": "N", "L": "T",
-			"M": "O", "N": "W", "O": "Y", "P": "H", "Q": "X", "R": "U",
-			"S": "S", "T": "P", "U": "A", "V": "I", "W": "B", "X": "R",
-			"Y": "C", "Z": "J",
+			Key{'A'}: Key{'E'}, Key{'B'}: Key{'K'}, Key{'C'}: Key{'M'}, Key{'D'}: Key{'F'}, Key{'E'}: Key{'L'}, Key{'F'}: Key{'G'},
+			Key{'G'}: Key{'D'}, Key{'H'}: Key{'Q'}, Key{'I'}: Key{'V'}, Key{'J'}: Key{'Z'}, Key{'K'}: Key{'N'}, Key{'L'}: Key{'T'},
+			Key{'M'}: Key{'O'}, Key{'N'}: Key{'W'}, Key{'O'}: Key{'Y'}, Key{'P'}: Key{'H'}, Key{'Q'}: Key{'X'}, Key{'R'}: Key{'U'},
+			Key{'S'}: Key{'S'}, Key{'T'}: Key{'P'}, Key{'U'}: Key{'A'}, Key{'V'}: Key{'I'}, Key{'W'}: Key{'B'}, Key{'X'}: Key{'R'},
+			Key{'Y'}: Key{'C'}, Key{'Z'}: Key{'J'},
 		},
 		"II": {
-			"A": "A", "B": "J", "C": "D", "D": "K", "E": "S", "F": "I",
-			"G": "R", "H": "U", "I": "X", "J": "B", "K": "L", "L": "H",
-			"M": "W", "N": "T", "O": "M", "P": "C", "Q": "Q", "R": "G",
-			"S": "Z", "T": "N", "U": "P", "V": "Y", "W": "F", "X": "V",
-			"Y": "O", "Z": "E",
+			Key{'A'}: Key{'A'}, Key{'B'}: Key{'J'}, Key{'C'}: Key{'D'}, Key{'D'}: Key{'K'}, Key{'E'}: Key{'S'}, Key{'F'}: Key{'I'},
+			Key{'G'}: Key{'R'}, Key{'H'}: Key{'U'}, Key{'I'}: Key{'X'}, Key{'J'}: Key{'B'}, Key{'K'}: Key{'L'}, Key{'L'}: Key{'H'},
+			Key{'M'}: Key{'W'}, Key{'N'}: Key{'T'}, Key{'O'}: Key{'M'}, Key{'P'}: Key{'C'}, Key{'Q'}: Key{'Q'}, Key{'R'}: Key{'G'},
+			Key{'S'}: Key{'Z'}, Key{'T'}: Key{'N'}, Key{'U'}: Key{'P'}, Key{'V'}: Key{'Y'}, Key{'W'}: Key{'F'}, Key{'X'}: Key{'V'},
+			Key{'Y'}: Key{'O'}, Key{'Z'}: Key{'E'},
 		},
 		"III": {
-			"A": "B", "B": "D", "C": "F", "D": "H", "E": "J", "F": "L",
-			"G": "C", "H": "P", "I": "R", "J": "T", "K": "X", "L": "V",
-			"M": "Z", "N": "N", "O": "Y", "P": "E", "Q": "I", "R": "W",
-			"S": "G", "T": "A", "U": "K", "V": "M", "W": "U", "X": "S",
-			"Y": "Q", "Z": "O",
+			Key{'A'}: Key{'B'}, Key{'B'}: Key{'D'}, Key{'C'}: Key{'F'}, Key{'D'}: Key{'H'}, Key{'E'}: Key{'J'}, Key{'F'}: Key{'L'},
+			Key{'G'}: Key{'C'}, Key{'H'}: Key{'P'}, Key{'I'}: Key{'R'}, Key{'J'}: Key{'T'}, Key{'K'}: Key{'X'}, Key{'L'}: Key{'V'},
+			Key{'M'}: Key{'Z'}, Key{'N'}: Key{'N'}, Key{'O'}: Key{'Y'}, Key{'P'}: Key{'E'}, Key{'Q'}: Key{'I'}, Key{'R'}: Key{'W'},
+			Key{'S'}: Key{'G'}, Key{'T'}: Key{'A'}, Key{'U'}: Key{'K'}, Key{'V'}: Key{'M'}, Key{'W'}: Key{'U'}, Key{'X'}: Key{'S'},
+			Key{'Y'}: Key{'Q'}, Key{'Z'}: Key{'O'},
 		},
 		"IV": {
-			"A": "E", "B": "S", "C": "O", "D": "V", "E": "P", "F": "Z",
-			"G": "J", "H": "A", "I": "Y", "J": "Q", "K": "U", "L": "I",
-			"M": "R", "N": "H", "O": "X", "P": "L", "Q": "N", "R": "F",
-			"S": "T", "T": "G", "U": "K", "V": "D", "W": "C", "X": "M",
-			"Y": "W", "Z": "B",
+			Key{'A'}: Key{'E'}, Key{'B'}: Key{'S'}, Key{'C'}: Key{'O'}, Key{'D'}: Key{'V'}, Key{'E'}: Key{'P'}, Key{'F'}: Key{'Z'},
+			Key{'G'}: Key{'J'}, Key{'H'}: Key{'A'}, Key{'I'}: Key{'Y'}, Key{'J'}: Key{'Q'}, Key{'K'}: Key{'U'}, Key{'L'}: Key{'I'},
+			Key{'M'}: Key{'R'}, Key{'N'}: Key{'H'}, Key{'O'}: Key{'X'}, Key{'P'}: Key{'L'}, Key{'Q'}: Key{'N'}, Key{'R'}: Key{'F'},
+			Key{'S'}: Key{'T'}, Key{'T'}: Key{'G'}, Key{'U'}: Key{'K'}, Key{'V'}: Key{'D'}, Key{'W'}: Key{'C'}, Key{'X'}: Key{'M'},
+			Key{'Y'}: Key{'W'}, Key{'Z'}: Key{'B'},
 		},
 		"V": {
-			"A": "V", "B": "Z", "C": "B", "D": "R", "E": "G", "F": "I",
-			"G": "T", "H": "Y", "I": "U", "J": "P", "K": "S", "L": "D",
-			"M": "N", "N": "H", "O": "L", "P": "X", "Q": "A", "R": "W",
-			"S": "M", "T": "J", "U": "Q", "V": "O", "W": "F", "X": "E",
-			"Y": "C", "Z": "K",
+			Key{'A'}: Key{'V'}, Key{'B'}: Key{'Z'}, Key{'C'}: Key{'B'}, Key{'D'}: Key{'R'}, Key{'E'}: Key{'G'}, Key{'F'}: Key{'I'},
+			Key{'G'}: Key{'T'}, Key{'H'}: Key{'Y'}, Key{'I'}: Key{'U'}, Key{'J'}: Key{'P'}, Key{'K'}: Key{'S'}, Key{'L'}: Key{'D'},
+			Key{'M'}: Key{'N'}, Key{'N'}: Key{'H'}, Key{'O'}: Key{'L'}, Key{'P'}: Key{'X'}, Key{'Q'}: Key{'A'}, Key{'R'}: Key{'W'},
+			Key{'S'}: Key{'M'}, Key{'T'}: Key{'J'}, Key{'U'}: Key{'Q'}, Key{'V'}: Key{'O'}, Key{'W'}: Key{'F'}, Key{'X'}: Key{'E'},
+			Key{'Y'}: Key{'C'}, Key{'Z'}: Key{'K'},
 		},
 		"VI": {
-			"A": "J", "B": "P", "C": "G", "D": "V", "E": "O", "F": "U",
-			"G": "M", "H": "F", "I": "Y", "J": "Q", "K": "B", "L": "E",
-			"M": "N", "N": "H", "O": "Z", "P": "R", "Q": "D", "R": "K",
-			"S": "A", "T": "S", "U": "X", "V": "L", "W": "I", "X": "C",
-			"Y": "T", "Z": "W",
+			Key{'A'}: Key{'J'}, Key{'B'}: Key{'P'}, Key{'C'}: Key{'G'}, Key{'D'}: Key{'V'}, Key{'E'}: Key{'O'}, Key{'F'}: Key{'U'},
+			Key{'G'}: Key{'M'}, Key{'H'}: Key{'F'}, Key{'I'}: Key{'Y'}, Key{'J'}: Key{'Q'}, Key{'K'}: Key{'B'}, Key{'L'}: Key{'E'},
+			Key{'M'}: Key{'N'}, Key{'N'}: Key{'H'}, Key{'O'}: Key{'Z'}, Key{'P'}: Key{'R'}, Key{'Q'}: Key{'D'}, Key{'R'}: Key{'K'},
+			Key{'S'}: Key{'A'}, Key{'T'}: Key{'S'}, Key{'U'}: Key{'X'}, Key{'V'}: Key{'L'}, Key{'W'}: Key{'I'}, Key{'X'}: Key{'C'},
+			Key{'Y'}: Key{'T'}, Key{'Z'}: Key{'W'},
 		},
 		"VII": {
-			"A": "N", "B": "Z", "C": "J", "D": "H", "E": "G", "F": "R",
-			"G": "C", "H": "X", "I": "M", "J": "Y", "K": "S", "L": "W",
-			"M": "B", "N": "O", "O": "U", "P": "F", "Q": "A", "R": "I",
-			"S": "V", "T": "L", "U": "P", "V": "E", "W": "K", "X": "Q",
-			"Y": "D", "Z": "T",
+			Key{'A'}: Key{'N'}, Key{'B'}: Key{'Z'}, Key{'C'}: Key{'J'}, Key{'D'}: Key{'H'}, Key{'E'}: Key{'G'}, Key{'F'}: Key{'R'},
+			Key{'G'}: Key{'C'}, Key{'H'}: Key{'X'}, Key{'I'}: Key{'M'}, Key{'J'}: Key{'Y'}, Key{'K'}: Key{'S'}, Key{'L'}: Key{'W'},
+			Key{'M'}: Key{'B'}, Key{'N'}: Key{'O'}, Key{'O'}: Key{'U'}, Key{'P'}: Key{'F'}, Key{'Q'}: Key{'A'}, Key{'R'}: Key{'I'},
+			Key{'S'}: Key{'V'}, Key{'T'}: Key{'L'}, Key{'U'}: Key{'P'}, Key{'V'}: Key{'E'}, Key{'W'}: Key{'K'}, Key{'X'}: Key{'Q'},
+			Key{'Y'}: Key{'D'}, Key{'Z'}: Key{'T'},
 		},
 		"VIII": {
-			"A": "F", "B": "K", "C": "Q", "D": "H", "E": "T", "F": "L",
-			"G": "X", "H": "O", "I": "C", "J": "B", "K": "J", "L": "S",
-			"M": "P", "N": "D", "O": "Z", "P": "R", "Q": "A", "R": "M",
-			"S": "E", "T": "W", "U": "N", "V": "I", "W": "U", "X": "Y",
-			"Y": "G", "Z": "V",
+			Key{'A'}: Key{'F'}, Key{'B'}: Key{'K'}, Key{'C'}: Key{'Q'}, Key{'D'}: Key{'H'}, Key{'E'}: Key{'T'}, Key{'F'}: Key{'L'},
+			Key{'G'}: Key{'X'}, Key{'H'}: Key{'O'}, Key{'I'}: Key{'C'}, Key{'J'}: Key{'B'}, Key{'K'}: Key{'J'}, Key{'L'}: Key{'S'},
+			Key{'M'}: Key{'P'}, Key{'N'}: Key{'D'}, Key{'O'}: Key{'Z'}, Key{'P'}: Key{'R'}, Key{'Q'}: Key{'A'}, Key{'R'}: Key{'M'},
+			Key{'S'}: Key{'E'}, Key{'T'}: Key{'W'}, Key{'U'}: Key{'N'}, Key{'V'}: Key{'I'}, Key{'W'}: Key{'U'}, Key{'X'}: Key{'Y'},
+			Key{'Y'}: Key{'G'}, Key{'Z'}: Key{'V'},
 		},
 	},
 	"M4": {
 		"Beta": {
-			"A": "L", "B": "E", "C": "Y", "D": "J", "E": "V", "F": "C",
-			"G": "N", "H": "I", "I": "X", "J": "W", "K": "P", "L": "B",
-			"M": "Q", "N": "M", "O": "D", "P": "R", "Q": "T", "R": "A",
-			"S": "K", "T": "Z", "U": "G", "V": "F", "W": "U", "X": "H",
-			"Y": "O", "Z": "S",
+			Key{'A'}: Key{'L'}, Key{'B'}: Key{'E'}, Key{'C'}: Key{'Y'}, Key{'D'}: Key{'J'}, Key{'E'}: Key{'V'}, Key{'F'}: Key{'C'},
+			Key{'G'}: Key{'N'}, Key{'H'}: Key{'I'}, Key{'I'}: Key{'X'}, Key{'J'}: Key{'W'}, Key{'K'}: Key{'P'}, Key{'L'}: Key{'B'},
+			Key{'M'}: Key{'Q'}, Key{'N'}: Key{'M'}, Key{'O'}: Key{'D'}, Key{'P'}: Key{'R'}, Key{'Q'}: Key{'T'}, Key{'R'}: Key{'A'},
+			Key{'S'}: Key{'K'}, Key{'T'}: Key{'Z'}, Key{'U'}: Key{'G'}, Key{'V'}: Key{'F'}, Key{'W'}: Key{'U'}, Key{'X'}: Key{'H'},
+			Key{'Y'}: Key{'O'}, Key{'Z'}: Key{'S'},
 		},
 		"Gamma": {
-			"A": "F", "B": "S", "C": "O", "D": "K", "E": "A", "F": "N",
-			"G": "U", "H": "E", "I": "R", "J": "H", "K": "M", "L": "B",
-			"M": "T", "N": "I", "O": "Y", "P": "C", "Q": "W", "R": "L",
-			"S": "Q", "T": "P", "U": "Z", "V": "X", "W": "V", "X": "G",
-			"Y": "J", "Z": "D",
+			Key{'A'}: Key{'F'}, Key{'B'}: Key{'S'}, Key{'C'}: Key{'O'}, Key{'D'}: Key{'K'}, Key{'E'}: Key{'A'}, Key{'F'}: Key{'N'},
+			Key{'G'}: Key{'U'}, Key{'H'}: Key{'E'}, Key{'I'}: Key{'R'}, Key{'J'}: Key{'H'}, Key{'K'}: Key{'M'}, Key{'L'}: Key{'B'},
+			Key{'M'}: Key{'T'}, Key{'N'}: Key{'I'}, Key{'O'}: Key{'Y'}, Key{'P'}: Key{'C'}, Key{'Q'}: Key{'W'}, Key{'R'}: Key{'L'},
+			Key{'S'}: Key{'Q'}, Key{'T'}: Key{'P'}, Key{'U'}: Key{'Z'}, Key{'V'}: Key{'X'}, Key{'W'}: Key{'V'}, Key{'X'}: Key{'G'},
+			Key{'Y'}: Key{'J'}, Key{'Z'}: Key{'D'},
 		},
 	},
 }
 
-type Wheel struct {
-	Number string `json:"number"`
-	RingSetting string `json:"ring setting"`
-	GroundSetting string `json:"ground setting"`
+func (key *Key) UnmarshalJSON(bytes []byte) (err error) {
+	key.rune = rune(bytes[1])
+
+	fmt.Println(key.rune)
+
+	return
 }
 
-type PlugboardMap map[string]string
+type Wheel struct {
+	Number string `json:"number"`
+	RingSetting Key `json:"ring setting"`
+	GroundSetting Key `json:"ground setting"`
+}
+
+type PlugboardMap map[Key]Key
+
+/*func (plugboardMap *PlugboardMap) UnmarshalJSON(bytes []byte) (err error) {
+	
+
+	return
+}*/
 
 type Enigma struct {
-	Model string `json:"model"`
-	Reflector string `json:"reflector"`
-	Wheels []Wheel `json:"wheels"`
+	Model string `json:"modelx"`
+	Reflector string `json:"reflectorx"`
+	Wheels []Wheel `json:"wheelsx"`
 	Plugboard PlugboardMap `json:"plugboard"`
 }
 
-func (enigma *Enigma) Encrypt(plainText string, wheelSettings string) (cipherText string, err error) {
-	cipherText = wheelSettings
-	encryptedWheelSettings := ""
-
-	for _, wheelSetting := range wheelSettings {
-		encryptedWheelSettings += enigma.Key(wheelSetting)
-	}
-
-	for i, encryptedWheelSetting := range encryptedWheelSettings {
-		enigma.Wheels[i].GroundSetting = encryptedWheelSetting
-	}
-
-	for _, ch := range plainText {
-		cipherText += enigma.Key(ch)
+func (enigma *Enigma) Key(inKey rune) (outKey rune) {
+	// plugboard
+	if plugboardKey, ok := enigma.Plugboard[Key{inKey}]; ok {
+		outKey = plugboardKey.rune
 	}
 
 	return
 }
 
-func (enigma *Enigma) Decrypt(cipherText string) (plainText string, err error) {
-	decryptedWheelSettings := ""
+func (enigma *Enigma) Encrypt(plainText string, wheelSettings string) (cipherText string, err error) {
+	cipherText = wheelSettings
 
-	for _, wheelSetting := range wheelSettings {
-		decryptedWheelSettings += enigma.Key(wheelSetting)
+	encryptedWheelSettings := strings.Map(enigma.Key, wheelSettings)
+	//for _, wheelSetting := range wheelSettings {
+	//	encryptedWheelSettings += enigma.Key(wheelSetting)
+	//}
+
+	for i, encryptedWheelSetting := range encryptedWheelSettings {
+		enigma.Wheels[i].GroundSetting = Key{encryptedWheelSetting}
 	}
+
+	cipherText = strings.Map(enigma.Key, plainText)
+
+	//for _, ch := range plainText {
+	//	cipherText += enigma.Key(ch)
+	//}
+
+	return
+}
+
+func (enigma *Enigma) Decrypt(cipherText string) (plainText string, err error) {
+	wheelSettings := cipherText[: 3]
+	cipherText = cipherText[3 :]
+	decryptedWheelSettings := ""
+	decryptedWheelSettings = strings.Map(enigma.Key, wheelSettings)
+
+	//for _, wheelSetting := range wheelSettings {
+	//	decryptedWheelSettings += enigma.Key(wheelSetting)
+	//}
 
 	for i, decryptedWheelSetting := range decryptedWheelSettings {
-		enigma.Wheels[i].GroundSetting = decryptedWheelSetting
+		enigma.Wheels[i].GroundSetting = Key{decryptedWheelSetting}
 	}
 
-	for _, ch := range cipherText {
-		plainText += enigma.Key(ch)
-	}
+	plainText = strings.Map(enigma.Key, cipherText)
+
+	//for _, ch := range cipherText {
+	//	plainText += enigma.Key(ch)
+	//}
 
 	return
 }
@@ -146,9 +181,11 @@ func main() {
 
 	err = json.Unmarshal(settings, &enigma)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	log.Fatal("")
 
 	fmt.Println(enigma)
 
