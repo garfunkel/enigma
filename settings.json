@@ -1,24 +1,32 @@
 {
-	"model": "M3",
-	"reflector": "B",
+	"model": "M4",
+	"reflector": "B Thin",
 	"wheels": [
 		{
+			"number": "Beta",
+			"ring": "E",
+			"ground": "G"
+		},
+		{
 			"number": "I",
-			"ring setting": "D",
-			"ground setting": "D"
+			"ring": "J",
+			"ground": "T"
 		},
 		{
-			"number": "II",
-			"ring setting": "M",
-			"ground setting": "X"
+			"number": "IV",
+			"ring": "U",
+			"ground": "A"
 		},
 		{
-			"number": "III",
-			"ring setting": "W",
-			"ground setting": "E"
+			"number": "VIII",
+			"ring": "O",
+			"ground": "B"
 		}
 	],
 	"plugboard": [
-		["I", "J"]
+		["A", "E"],
+		["B", "F"],
+		["C", "M"],
+		["D", "Q"]
 	]
 }

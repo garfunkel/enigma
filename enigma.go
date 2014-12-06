@@ -1,10 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"unicode"
+	"errors"
+	"flag"
+	"os"
+	"io"
 )
 
 type Rune rune
@@ -58,87 +62,83 @@ var ReflectorWiring = map[string]map[Rune]Rune{
 	},
 }
 
-var WheelWiring = map[string]map[string]map[Rune]Rune{
-	"M3": {
-		"I": {
-			'A': 'E', 'B': 'K', 'C': 'M', 'D': 'F', 'E': 'L', 'F': 'G',
-			'G': 'D', 'H': 'Q', 'I': 'V', 'J': 'Z', 'K': 'N', 'L': 'T',
-			'M': 'O', 'N': 'W', 'O': 'Y', 'P': 'H', 'Q': 'X', 'R': 'U',
-			'S': 'S', 'T': 'P', 'U': 'A', 'V': 'I', 'W': 'B', 'X': 'R',
-			'Y': 'C', 'Z': 'J',
-		},
-		"II": {
-			'A': 'A', 'B': 'J', 'C': 'D', 'D': 'K', 'E': 'S', 'F': 'I',
-			'G': 'R', 'H': 'U', 'I': 'X', 'J': 'B', 'K': 'L', 'L': 'H',
-			'M': 'W', 'N': 'T', 'O': 'M', 'P': 'C', 'Q': 'Q', 'R': 'G',
-			'S': 'Z', 'T': 'N', 'U': 'P', 'V': 'Y', 'W': 'F', 'X': 'V',
-			'Y': 'O', 'Z': 'E',
-		},
-		"III": {
-			'A': 'B', 'B': 'D', 'C': 'F', 'D': 'H', 'E': 'J', 'F': 'L',
-			'G': 'C', 'H': 'P', 'I': 'R', 'J': 'T', 'K': 'X', 'L': 'V',
-			'M': 'Z', 'N': 'N', 'O': 'Y', 'P': 'E', 'Q': 'I', 'R': 'W',
-			'S': 'G', 'T': 'A', 'U': 'K', 'V': 'M', 'W': 'U', 'X': 'S',
-			'Y': 'Q', 'Z': 'O',
-		},
-		"IV": {
-			'A': 'E', 'B': 'S', 'C': 'O', 'D': 'V', 'E': 'P', 'F': 'Z',
-			'G': 'J', 'H': 'A', 'I': 'Y', 'J': 'Q', 'K': 'U', 'L': 'I',
-			'M': 'R', 'N': 'H', 'O': 'X', 'P': 'L', 'Q': 'N', 'R': 'F',
-			'S': 'T', 'T': 'G', 'U': 'K', 'V': 'D', 'W': 'C', 'X': 'M',
-			'Y': 'W', 'Z': 'B',
-		},
-		"V": {
-			'A': 'V', 'B': 'Z', 'C': 'B', 'D': 'R', 'E': 'G', 'F': 'I',
-			'G': 'T', 'H': 'Y', 'I': 'U', 'J': 'P', 'K': 'S', 'L': 'D',
-			'M': 'N', 'N': 'H', 'O': 'L', 'P': 'X', 'Q': 'A', 'R': 'W',
-			'S': 'M', 'T': 'J', 'U': 'Q', 'V': 'O', 'W': 'F', 'X': 'E',
-			'Y': 'C', 'Z': 'K',
-		},
-		"VI": {
-			'A': 'J', 'B': 'P', 'C': 'G', 'D': 'V', 'E': 'O', 'F': 'U',
-			'G': 'M', 'H': 'F', 'I': 'Y', 'J': 'Q', 'K': 'B', 'L': 'E',
-			'M': 'N', 'N': 'H', 'O': 'Z', 'P': 'R', 'Q': 'D', 'R': 'K',
-			'S': 'A', 'T': 'S', 'U': 'X', 'V': 'L', 'W': 'I', 'X': 'C',
-			'Y': 'T', 'Z': 'W',
-		},
-		"VII": {
-			'A': 'N', 'B': 'Z', 'C': 'J', 'D': 'H', 'E': 'G', 'F': 'R',
-			'G': 'C', 'H': 'X', 'I': 'M', 'J': 'Y', 'K': 'S', 'L': 'W',
-			'M': 'B', 'N': 'O', 'O': 'U', 'P': 'F', 'Q': 'A', 'R': 'I',
-			'S': 'V', 'T': 'L', 'U': 'P', 'V': 'E', 'W': 'K', 'X': 'Q',
-			'Y': 'D', 'Z': 'T',
-		},
-		"VIII": {
-			'A': 'F', 'B': 'K', 'C': 'Q', 'D': 'H', 'E': 'T', 'F': 'L',
-			'G': 'X', 'H': 'O', 'I': 'C', 'J': 'B', 'K': 'J', 'L': 'S',
-			'M': 'P', 'N': 'D', 'O': 'Z', 'P': 'R', 'Q': 'A', 'R': 'M',
-			'S': 'E', 'T': 'W', 'U': 'N', 'V': 'I', 'W': 'U', 'X': 'Y',
-			'Y': 'G', 'Z': 'V',
-		},
+var WheelWiring = map[string]map[Rune]Rune{
+	"I": {
+		'A': 'E', 'B': 'K', 'C': 'M', 'D': 'F', 'E': 'L', 'F': 'G',
+		'G': 'D', 'H': 'Q', 'I': 'V', 'J': 'Z', 'K': 'N', 'L': 'T',
+		'M': 'O', 'N': 'W', 'O': 'Y', 'P': 'H', 'Q': 'X', 'R': 'U',
+		'S': 'S', 'T': 'P', 'U': 'A', 'V': 'I', 'W': 'B', 'X': 'R',
+		'Y': 'C', 'Z': 'J',
 	},
-	"M4": {
-		"Beta": {
-			'A': 'L', 'B': 'E', 'C': 'Y', 'D': 'J', 'E': 'V', 'F': 'C',
-			'G': 'N', 'H': 'I', 'I': 'X', 'J': 'W', 'K': 'P', 'L': 'B',
-			'M': 'Q', 'N': 'M', 'O': 'D', 'P': 'R', 'Q': 'T', 'R': 'A',
-			'S': 'K', 'T': 'Z', 'U': 'G', 'V': 'F', 'W': 'U', 'X': 'H',
-			'Y': 'O', 'Z': 'S',
-		},
-		"Gamma": {
-			'A': 'F', 'B': 'S', 'C': 'O', 'D': 'K', 'E': 'A', 'F': 'N',
-			'G': 'U', 'H': 'E', 'I': 'R', 'J': 'H', 'K': 'M', 'L': 'B',
-			'M': 'T', 'N': 'I', 'O': 'Y', 'P': 'C', 'Q': 'W', 'R': 'L',
-			'S': 'Q', 'T': 'P', 'U': 'Z', 'V': 'X', 'W': 'V', 'X': 'G',
-			'Y': 'J', 'Z': 'D',
-		},
+	"II": {
+		'A': 'A', 'B': 'J', 'C': 'D', 'D': 'K', 'E': 'S', 'F': 'I',
+		'G': 'R', 'H': 'U', 'I': 'X', 'J': 'B', 'K': 'L', 'L': 'H',
+		'M': 'W', 'N': 'T', 'O': 'M', 'P': 'C', 'Q': 'Q', 'R': 'G',
+		'S': 'Z', 'T': 'N', 'U': 'P', 'V': 'Y', 'W': 'F', 'X': 'V',
+		'Y': 'O', 'Z': 'E',
+	},
+	"III": {
+		'A': 'B', 'B': 'D', 'C': 'F', 'D': 'H', 'E': 'J', 'F': 'L',
+		'G': 'C', 'H': 'P', 'I': 'R', 'J': 'T', 'K': 'X', 'L': 'V',
+		'M': 'Z', 'N': 'N', 'O': 'Y', 'P': 'E', 'Q': 'I', 'R': 'W',
+		'S': 'G', 'T': 'A', 'U': 'K', 'V': 'M', 'W': 'U', 'X': 'S',
+		'Y': 'Q', 'Z': 'O',
+	},
+	"IV": {
+		'A': 'E', 'B': 'S', 'C': 'O', 'D': 'V', 'E': 'P', 'F': 'Z',
+		'G': 'J', 'H': 'A', 'I': 'Y', 'J': 'Q', 'K': 'U', 'L': 'I',
+		'M': 'R', 'N': 'H', 'O': 'X', 'P': 'L', 'Q': 'N', 'R': 'F',
+		'S': 'T', 'T': 'G', 'U': 'K', 'V': 'D', 'W': 'C', 'X': 'M',
+		'Y': 'W', 'Z': 'B',
+	},
+	"V": {
+		'A': 'V', 'B': 'Z', 'C': 'B', 'D': 'R', 'E': 'G', 'F': 'I',
+		'G': 'T', 'H': 'Y', 'I': 'U', 'J': 'P', 'K': 'S', 'L': 'D',
+		'M': 'N', 'N': 'H', 'O': 'L', 'P': 'X', 'Q': 'A', 'R': 'W',
+		'S': 'M', 'T': 'J', 'U': 'Q', 'V': 'O', 'W': 'F', 'X': 'E',
+		'Y': 'C', 'Z': 'K',
+	},
+	"VI": {
+		'A': 'J', 'B': 'P', 'C': 'G', 'D': 'V', 'E': 'O', 'F': 'U',
+		'G': 'M', 'H': 'F', 'I': 'Y', 'J': 'Q', 'K': 'B', 'L': 'E',
+		'M': 'N', 'N': 'H', 'O': 'Z', 'P': 'R', 'Q': 'D', 'R': 'K',
+		'S': 'A', 'T': 'S', 'U': 'X', 'V': 'L', 'W': 'I', 'X': 'C',
+		'Y': 'T', 'Z': 'W',
+	},
+	"VII": {
+		'A': 'N', 'B': 'Z', 'C': 'J', 'D': 'H', 'E': 'G', 'F': 'R',
+		'G': 'C', 'H': 'X', 'I': 'M', 'J': 'Y', 'K': 'S', 'L': 'W',
+		'M': 'B', 'N': 'O', 'O': 'U', 'P': 'F', 'Q': 'A', 'R': 'I',
+		'S': 'V', 'T': 'L', 'U': 'P', 'V': 'E', 'W': 'K', 'X': 'Q',
+		'Y': 'D', 'Z': 'T',
+	},
+	"VIII": {
+		'A': 'F', 'B': 'K', 'C': 'Q', 'D': 'H', 'E': 'T', 'F': 'L',
+		'G': 'X', 'H': 'O', 'I': 'C', 'J': 'B', 'K': 'J', 'L': 'S',
+		'M': 'P', 'N': 'D', 'O': 'Z', 'P': 'R', 'Q': 'A', 'R': 'M',
+		'S': 'E', 'T': 'W', 'U': 'N', 'V': 'I', 'W': 'U', 'X': 'Y',
+		'Y': 'G', 'Z': 'V',
+	},
+	"Beta": {
+		'A': 'L', 'B': 'E', 'C': 'Y', 'D': 'J', 'E': 'V', 'F': 'C',
+		'G': 'N', 'H': 'I', 'I': 'X', 'J': 'W', 'K': 'P', 'L': 'B',
+		'M': 'Q', 'N': 'M', 'O': 'D', 'P': 'R', 'Q': 'T', 'R': 'A',
+		'S': 'K', 'T': 'Z', 'U': 'G', 'V': 'F', 'W': 'U', 'X': 'H',
+		'Y': 'O', 'Z': 'S',
+	},
+	"Gamma": {
+		'A': 'F', 'B': 'S', 'C': 'O', 'D': 'K', 'E': 'A', 'F': 'N',
+		'G': 'U', 'H': 'E', 'I': 'R', 'J': 'H', 'K': 'M', 'L': 'B',
+		'M': 'T', 'N': 'I', 'O': 'Y', 'P': 'C', 'Q': 'W', 'R': 'L',
+		'S': 'Q', 'T': 'P', 'U': 'Z', 'V': 'X', 'W': 'V', 'X': 'G',
+		'Y': 'J', 'Z': 'D',
 	},
 }
 
 type Wheel struct {
 	Number string `json:"number"`
-	RingSetting Rune `json:"ring setting"`
-	GroundSetting Rune `json:"ground setting"`
+	RingSetting Rune `json:"ring"`
+	GroundSetting Rune `json:"ground"`
 }
 
 type Enigma struct {
@@ -218,6 +218,12 @@ func New(settingsPath string) (enigma *Enigma, err error) {
 
 func (enigma *Enigma) step() {
 	for wheelIndex := len(enigma.Wheels) - 1; wheelIndex >= 0; wheelIndex-- {
+		if enigma.Wheels[wheelIndex].Number == "Beta" {
+			break
+		} else if enigma.Wheels[wheelIndex].Number == "Gamma" {
+			break
+		}
+
 		if !enigma.Wheels[wheelIndex].step() {
 			// Doubestepping.
 			if wheelIndex > 0 {
@@ -252,15 +258,21 @@ func (enigma *Enigma) MapToPlugboard(letter Rune) (result Rune) {
 	return
 }
 
-func (enigma *Enigma) Key(letter Rune) (result Rune) {
+func (enigma *Enigma) Key(letter Rune) (result Rune, err error) {
 	enigma.step()
 
 	result = enigma.MapToPlugboard(letter)
 
 	for wheelIndex := len(enigma.Wheels) - 1; wheelIndex >= 0; wheelIndex-- {
 		result = enigma.Wheels[wheelIndex].getEntryContact(result)
-		result = WheelWiring[enigma.Model][enigma.Wheels[wheelIndex].Number][result]
+		result = WheelWiring[enigma.Wheels[wheelIndex].Number][result]
 		result = enigma.Wheels[wheelIndex].getExitContact(result)
+	}
+
+	if _, ok := ReflectorWiring[enigma.Reflector]; !ok {
+		err = errors.New("Invalid reflector.")
+
+		return
 	}
 
 	result = ReflectorWiring[enigma.Reflector][result]
@@ -268,7 +280,7 @@ func (enigma *Enigma) Key(letter Rune) (result Rune) {
 	for wheelIndex := 0; wheelIndex < len(enigma.Wheels); wheelIndex++ {
 		result = enigma.Wheels[wheelIndex].getEntryContact(result)
 
-		for key, value := range WheelWiring[enigma.Model][enigma.Wheels[wheelIndex].Number] {
+		for key, value := range WheelWiring[enigma.Wheels[wheelIndex].Number] {
 			if value == result {
 				result = key
 
@@ -285,43 +297,67 @@ func (enigma *Enigma) Key(letter Rune) (result Rune) {
 }
 
 func (enigma *Enigma) Encrypt(plainText string) (cipherText string, err error) {
+	var result Rune
+
 	for _, ch := range plainText {
-		cipherText += string(enigma.Key(Rune(ch)))
+		upperCh := unicode.ToUpper(ch)
+
+		if upperCh < 65 || upperCh > 90 {
+			cipherText += string(ch)
+		} else {
+			result, err = enigma.Key(Rune(upperCh))
+
+			if err != nil {
+				return
+			}
+
+			if unicode.IsLower(ch) {
+				result = Rune(unicode.ToLower(rune(result)))
+			}
+
+			cipherText += string(result)
+		}
 	}
 
 	return
 }
 
-func (enigma *Enigma) Decrypt(cipherText string) (plainText string, err error) {
-	plainText, err = enigma.Encrypt(cipherText)
+func (enigma *Enigma) Write(data []byte) (numBytes int, err error) {
+	result, err := enigma.Encrypt(string(data))
+
+	if err != nil {
+		return
+	}
+
+	numBytes, err = os.Stdout.Write([]byte(result))
 
 	return
 }
 
 func main() {
-	enigma, err := New("settings.json")
+	settingsPath := flag.String("s", "settings.json", "path to JSON settings file")
+
+	flag.Parse()
+
+	enigma, err := New(*settingsPath)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	plainText := "KKK"
+	if flag.NArg() == 0 {
+		io.Copy(enigma, os.Stdin)
+	} else {
+		var handle *os.File
 
-	cipherText, err := enigma.Encrypt(plainText)
+		for _, path := range flag.Args() {
+			handle, err = os.Open(path)
 
-	if err != nil {
-		log.Fatal(err)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			io.Copy(enigma, handle)
+		}
 	}
-
-	fmt.Println(cipherText)
-
-	enigma, err = New("settings.json")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	plainText, err = enigma.Decrypt(cipherText)
-
-	fmt.Println(plainText)
 }
