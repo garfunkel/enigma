@@ -3,26 +3,22 @@
 	"reflector": "B",
 	"wheels": [
 		{
-			"number": "II",
-			"ring setting": "J",
-			"ground setting": "Q"
-		},
-		{
-			"number": "IV",
-			"ring setting": "B",
+			"number": "I",
+			"ring setting": "D",
 			"ground setting": "D"
 		},
 		{
-			"number": "VII",
-			"ring setting": "L",
-			"ground setting": "R"
+			"number": "II",
+			"ring setting": "M",
+			"ground setting": "X"
+		},
+		{
+			"number": "III",
+			"ring setting": "W",
+			"ground setting": "E"
 		}
 	],
-	"plugboard": {
-		"A": "J",
-		"K": "Z",
-		"Y": "D",
-		"O": "R",
-		"T": "Q"
-	}
+	"plugboard": [
+		["I", "J"]
+	]
 }
