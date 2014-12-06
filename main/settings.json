@@ -1,0 +1,32 @@
+{
+	"model": "M4",
+	"reflector": "B Thin",
+	"wheels": [
+		{
+			"number": "Beta",
+			"ring": "E",
+			"ground": "G"
+		},
+		{
+			"number": "I",
+			"ring": "J",
+			"ground": "T"
+		},
+		{
+			"number": "IV",
+			"ring": "U",
+			"ground": "A"
+		},
+		{
+			"number": "VIII",
+			"ring": "O",
+			"ground": "B"
+		}
+	],
+	"plugboard": [
+		["A", "E"],
+		["B", "F"],
+		["C", "M"],
+		["D", "Q"]
+	]
+}

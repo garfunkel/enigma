@@ -1,18 +1,19 @@
-package main
+// Package enigma provides a simple library for German WWII Enigma encryption/decryption.
+package enigma
 
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"unicode"
 	"errors"
-	"flag"
 	"os"
-	"io"
 )
 
+// Rune represents a character to be encrypted/decrypted.
 type Rune rune
 
+// WheelTurnoverPoints represents the points at which the left sibling wheel
+// should be stepped.
 var WheelTurnoverPoints = map[string]map[Rune]struct{}{
 	"I": {'Q': struct{}{}},
 	"II": {'E': struct{}{}},
@@ -24,6 +25,7 @@ var WheelTurnoverPoints = map[string]map[Rune]struct{}{
 	"VIII": {'Z': struct{}{}, 'M': struct{}{}},
 }
 
+// ReflectorWiring represents the wiring configuration for each reflector rotor.
 var ReflectorWiring = map[string]map[Rune]Rune{
 	"A": {
 		'A': 'E', 'B': 'J', 'C': 'M', 'D': 'Z', 'E': 'A', 'F': 'L',
@@ -62,6 +64,7 @@ var ReflectorWiring = map[string]map[Rune]Rune{
 	},
 }
 
+// WheelWiring represents the wiring configuration for each rotor.
 var WheelWiring = map[string]map[Rune]Rune{
 	"I": {
 		'A': 'E', 'B': 'K', 'C': 'M', 'D': 'F', 'E': 'L', 'F': 'G',
@@ -135,12 +138,14 @@ var WheelWiring = map[string]map[Rune]Rune{
 	},
 }
 
+// Wheel is an Enigma rotor.
 type Wheel struct {
 	Number string `json:"number"`
 	RingSetting Rune `json:"ring"`
 	GroundSetting Rune `json:"ground"`
 }
 
+// Enigma is the type encapsulating encryption/decryption methods.
 type Enigma struct {
 	Model string `json:"model"`
 	Reflector string `json:"reflector"`
@@ -148,13 +153,15 @@ type Enigma struct {
 	Plugboard [][]Rune `json:"plugboard"`
 }
 
+// UnmarshalJSON unmarshals a json string representation of a letter into a Rune.
 func (c *Rune) UnmarshalJSON(data []byte) (err error) {
 	*c = Rune(data[1])
 
 	return
 }
 
-func (wheel *Wheel) getEntryContact(letter Rune) (result Rune) {
+// GetEntryContact gets the entry contact for a given letter.
+func (wheel *Wheel) GetEntryContact(letter Rune) (result Rune) {
 	letterNum := int(letter)
 	groundNum := int(wheel.GroundSetting)
 	ringNum := int(wheel.RingSetting)
@@ -172,7 +179,8 @@ func (wheel *Wheel) getEntryContact(letter Rune) (result Rune) {
 	return
 }
 
-func (wheel *Wheel) getExitContact(letter Rune) (result Rune) {
+// GetExitContact gets the exit contact for a given letter.
+func (wheel *Wheel) GetExitContact(letter Rune) (result Rune) {
 	letterNum := int(letter)
 	groundNum := int(wheel.GroundSetting)
 	ringNum := int(wheel.RingSetting)
@@ -190,7 +198,8 @@ func (wheel *Wheel) getExitContact(letter Rune) (result Rune) {
 	return
 }
 
-func (wheel *Wheel) step() (turnover bool) {
+// Step the rotor, returning boolean value representing if turnover is required.
+func (wheel *Wheel) Step() (turnover bool) {
 	groundNum := int(wheel.GroundSetting) + 1
 
 	if groundNum > 90 {
@@ -203,6 +212,7 @@ func (wheel *Wheel) step() (turnover bool) {
 	return 
 }
 
+// New creates a new instance of an Enigma from a settings JSON file.
 func New(settingsPath string) (enigma *Enigma, err error) {
 	enigma = new(Enigma)
 	settings, err := ioutil.ReadFile(settingsPath)
@@ -216,15 +226,17 @@ func New(settingsPath string) (enigma *Enigma, err error) {
 	return
 }
 
-func (enigma *Enigma) step() {
+// Step each wheel (if required), accounting also for doublestep occurances.
+func (enigma *Enigma) Step() {
 	for wheelIndex := len(enigma.Wheels) - 1; wheelIndex >= 0; wheelIndex-- {
+		// We don't want to rotate these wheels.
 		if enigma.Wheels[wheelIndex].Number == "Beta" {
 			break
 		} else if enigma.Wheels[wheelIndex].Number == "Gamma" {
 			break
 		}
 
-		if !enigma.Wheels[wheelIndex].step() {
+		if !enigma.Wheels[wheelIndex].Step() {
 			// Doubestepping.
 			if wheelIndex > 0 {
 				doublestepWheel := enigma.Wheels[wheelIndex - 1]
@@ -240,6 +252,7 @@ func (enigma *Enigma) step() {
 	}
 }
 
+// MapToPlugboard maps letters through the Enigma plugboard.
 func (enigma *Enigma) MapToPlugboard(letter Rune) (result Rune) {
 	result = letter
 
@@ -258,15 +271,16 @@ func (enigma *Enigma) MapToPlugboard(letter Rune) (result Rune) {
 	return
 }
 
+// Key inputs a letter into the Enigma machine, returning the ciphertext.
 func (enigma *Enigma) Key(letter Rune) (result Rune, err error) {
-	enigma.step()
+	enigma.Step()
 
 	result = enigma.MapToPlugboard(letter)
 
 	for wheelIndex := len(enigma.Wheels) - 1; wheelIndex >= 0; wheelIndex-- {
-		result = enigma.Wheels[wheelIndex].getEntryContact(result)
+		result = enigma.Wheels[wheelIndex].GetEntryContact(result)
 		result = WheelWiring[enigma.Wheels[wheelIndex].Number][result]
-		result = enigma.Wheels[wheelIndex].getExitContact(result)
+		result = enigma.Wheels[wheelIndex].GetExitContact(result)
 	}
 
 	if _, ok := ReflectorWiring[enigma.Reflector]; !ok {
@@ -278,7 +292,7 @@ func (enigma *Enigma) Key(letter Rune) (result Rune, err error) {
 	result = ReflectorWiring[enigma.Reflector][result]
 
 	for wheelIndex := 0; wheelIndex < len(enigma.Wheels); wheelIndex++ {
-		result = enigma.Wheels[wheelIndex].getEntryContact(result)
+		result = enigma.Wheels[wheelIndex].GetEntryContact(result)
 
 		for key, value := range WheelWiring[enigma.Wheels[wheelIndex].Number] {
 			if value == result {
@@ -288,7 +302,7 @@ func (enigma *Enigma) Key(letter Rune) (result Rune, err error) {
 			}
 		}
 
-		result = enigma.Wheels[wheelIndex].getExitContact(result)
+		result = enigma.Wheels[wheelIndex].GetExitContact(result)
 	}
 
 	result = enigma.MapToPlugboard(result)
@@ -296,6 +310,7 @@ func (enigma *Enigma) Key(letter Rune) (result Rune, err error) {
 	return
 }
 
+// Encrypt a string, returning the ciphertext.
 func (enigma *Enigma) Encrypt(plainText string) (cipherText string, err error) {
 	var result Rune
 
@@ -322,6 +337,7 @@ func (enigma *Enigma) Encrypt(plainText string) (cipherText string, err error) {
 	return
 }
 
+// Takes letters from a byte slice and writes encrypted ciphertext result to STDOUT.
 func (enigma *Enigma) Write(data []byte) (numBytes int, err error) {
 	result, err := enigma.Encrypt(string(data))
 
@@ -332,32 +348,4 @@ func (enigma *Enigma) Write(data []byte) (numBytes int, err error) {
 	numBytes, err = os.Stdout.Write([]byte(result))
 
 	return
-}
-
-func main() {
-	settingsPath := flag.String("s", "settings.json", "path to JSON settings file")
-
-	flag.Parse()
-
-	enigma, err := New(*settingsPath)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if flag.NArg() == 0 {
-		io.Copy(enigma, os.Stdin)
-	} else {
-		var handle *os.File
-
-		for _, path := range flag.Args() {
-			handle, err = os.Open(path)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			io.Copy(enigma, handle)
-		}
-	}
 }
